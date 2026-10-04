@@ -143,8 +143,40 @@ describe("real-mode upload/job state", () => {
       await result.current.startJob({ dual: true });
     });
 
-    expect(api.createJob).toHaveBeenCalledWith(["f1"], { backend: "anthropic", dual: true });
+    expect(api.createJob).toHaveBeenCalledWith(["f1"], { backend: "anthropic", targets: {}, dual: true });
     expect(result.current.jobId).toBe("job1");
+  });
+
+  it("startJob and runEstimate send each file's chosen target language", async () => {
+    api.uploadFile.mockResolvedValue({ file_id: "f1", name: "a.pdf", kind: "digital", pages: 1, size: 100 });
+    api.createJob.mockResolvedValue({ job_id: "job1" });
+    api.estimate.mockResolvedValue([]);
+    const { result } = renderAppState();
+
+    await act(async () => {
+      await result.current.addUploads([{ name: "a.pdf" }]);
+    });
+    act(() => result.current.setTarget("f1", "es"));
+    await act(async () => {
+      await result.current.runEstimate();
+      await result.current.startJob({ dual: true });
+    });
+
+    expect(api.estimate).toHaveBeenCalledWith(["f1"], { f1: "es" });
+    expect(api.createJob).toHaveBeenCalledWith(["f1"], { backend: null, targets: { f1: "es" }, dual: true });
+  });
+
+  it("removing an upload forgets its target", async () => {
+    api.uploadFile.mockResolvedValue({ file_id: "f1", name: "a.pdf", kind: "digital", pages: 1, size: 100 });
+    const { result } = renderAppState();
+
+    await act(async () => {
+      await result.current.addUploads([{ name: "a.pdf" }]);
+    });
+    act(() => result.current.setTarget("f1", "es"));
+    act(() => result.current.removeUpload("f1"));
+
+    expect(result.current.targets).toEqual({});
   });
 
   it("resetPipeline clears uploads, estimates, and the job", async () => {

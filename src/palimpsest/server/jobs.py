@@ -40,6 +40,7 @@ from palimpsest.qa.compare import build_dual_pdf
 from palimpsest.server.uploads import UploadedFile
 from palimpsest.text.glossary import Glossary
 from palimpsest.translate.backend import Backend
+from palimpsest.translate.direction import DEFAULT_TARGET, config_for_target, resources_for
 
 log = logging.getLogger(__name__)
 
@@ -66,6 +67,10 @@ class JobFile:
     name: str
     kind: str
     status: FileStatus = "pending"
+    target: str = "en"
+    """The language this file is translated INTO ("en" or "es") -- chosen
+    per file in the web UI's Queue step. The source is always the other
+    one; see `translate.direction`."""
     report: dict | None = None
     error: str | None = None
     output_path: Path | None = None
@@ -74,7 +79,8 @@ class JobFile:
     def to_dict(self) -> dict:
         return {
             "file_id": self.file_id, "name": self.name, "kind": self.kind,
-            "status": self.status, "report": self.report, "error": self.error,
+            "status": self.status, "target": self.target,
+            "report": self.report, "error": self.error,
         }
 
     def _persist_dict(self) -> dict:
@@ -89,7 +95,8 @@ class JobFile:
     def _from_persist_dict(cls, d: dict) -> JobFile:
         return cls(
             file_id=d["file_id"], name=d["name"], kind=d["kind"],
-            status=d.get("status", "pending"), report=d.get("report"), error=d.get("error"),
+            status=d.get("status", "pending"), target=d.get("target", "en"),
+            report=d.get("report"), error=d.get("error"),
             output_path=Path(d["output_path"]) if d.get("output_path") else None,
             dual_path=Path(d["dual_path"]) if d.get("dual_path") else None,
         )
@@ -196,10 +203,22 @@ class JobRegistry:
         return job
 
     def create(
-        self, uploaded: list[UploadedFile], backend_name: str, dual: bool, visitor_id: str = "local"
+        self,
+        uploaded: list[UploadedFile],
+        backend_name: str,
+        dual: bool,
+        visitor_id: str = "local",
+        targets: dict[str, str] | None = None,
     ) -> Job:
         job_id = uuid.uuid4().hex
-        files = [JobFile(file_id=u.file_id, name=u.name, kind=str(u.kind)) for u in uploaded]
+        targets = targets or {}
+        files = [
+            JobFile(
+                file_id=u.file_id, name=u.name, kind=str(u.kind),
+                target=targets.get(u.file_id, DEFAULT_TARGET),
+            )
+            for u in uploaded
+        ]
         job = Job(
             id=job_id, files=files, backend_name=backend_name, dual=dual, visitor_id=visitor_id
         )
@@ -310,12 +329,17 @@ class JobRegistry:
                     )
 
                 rel = jf.name
+                # Per-file direction: the same pipelines, handed a config /
+                # glossary / post-rule set that is correct for THIS file's
+                # source->target pair (see translate.direction).
+                file_config = config_for_target(config, jf.target)
+                file_glossary, file_post_rules = resources_for(jf.target, glossary, post_rules)
                 out_path = out_dir / f"{jf.file_id}.{Path(jf.name).suffix.lstrip('.')}"
                 try:
                     if uploaded.kind == "office":
                         report = translate_office_document(
                             uploaded.path, out_path, rel, backend,
-                            entities, glossary, post_rules, config,
+                            entities, file_glossary, file_post_rules, file_config,
                         )
                     else:
                         # uploads.validate_and_save only ever assigns a
@@ -323,7 +347,7 @@ class JobRegistry:
                         # excluded above -- everything else is a real Kind.
                         report = translate_pdf_document(
                             uploaded.path, out_path, rel, backend,
-                            entities, glossary, post_rules, config,
+                            entities, file_glossary, file_post_rules, file_config,
                             kind=cast(Kind, uploaded.kind), progress=progress,
                         )
                     with job._lock:

@@ -25,6 +25,12 @@ export function AppStateProvider({ children }) {
   // server existing at all.
   const [uploads, setUploads] = useState([]); // [{file_id, name, kind, pages, size}, ...]
   const [estimates, setEstimates] = useState([]); // POST /api/estimate response, parallel to uploads
+  // file key -> "en" | "es": which language each queued file is translated
+  // INTO, chosen per file in the Queue step. Keyed by file_id in real mode
+  // and by name in mock mode; a file with no entry is "en" (the original,
+  // Spanish -> English behaviour).
+  const [targets, setTargets] = useState({});
+  const setTarget = useCallback((key, lang) => setTargets((prev) => ({ ...prev, [key]: lang })), []);
   const [jobId, setJobId] = useState(null);
   const [job, setJob] = useState(null); // latest GET /api/jobs/{id} snapshot
   const [apiError, setApiError] = useState(null); // ApiError | null -- drives the "backend unreachable" banner
@@ -115,19 +121,23 @@ export function AppStateProvider({ children }) {
   const removeUpload = useCallback((fileId) => {
     setUploads((prev) => prev.filter((u) => u.file_id !== fileId));
     setEstimates((prev) => prev.filter((e) => e.file_id !== fileId));
+    setTargets((prev) => {
+      const { [fileId]: _dropped, ...rest } = prev;
+      return rest;
+    });
   }, []);
 
   const runEstimate = useCallback(async () => {
     setApiError(null);
     try {
-      const result = await api.estimate(uploads.map((u) => u.file_id));
+      const result = await api.estimate(uploads.map((u) => u.file_id), targets);
       setEstimates(result);
       return result;
     } catch (e) {
       setApiError(e);
       throw e;
     }
-  }, [uploads]);
+  }, [uploads, targets]);
 
   const startJob = useCallback(
     async (opts) => {
@@ -135,6 +145,7 @@ export function AppStateProvider({ children }) {
       try {
         const { job_id } = await api.createJob(uploads.map((u) => u.file_id), {
           backend: selectedBackend,
+          targets,
           ...opts,
         });
         setJobId(job_id);
@@ -145,12 +156,13 @@ export function AppStateProvider({ children }) {
         throw e;
       }
     },
-    [uploads, selectedBackend],
+    [uploads, selectedBackend, targets],
   );
 
   const resetPipeline = useCallback(() => {
     setUploads([]);
     setEstimates([]);
+    setTargets({});
     setJobId(null);
     setJob(null);
     setApiError(null);
@@ -170,6 +182,8 @@ export function AppStateProvider({ children }) {
     addUploads,
     removeUpload,
     estimates,
+    targets,
+    setTarget,
     runEstimate,
     jobId,
     job,

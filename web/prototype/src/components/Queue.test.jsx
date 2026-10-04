@@ -113,3 +113,24 @@ describe("scan warning uses `warn`, not `flag`", () => {
     expect(alertStyle).not.toContain("--mantine-color-flag-light");
   });
 });
+
+describe("per-file target language", () => {
+  it("defaults to English and sends Spanish once the file's switch is flipped", async () => {
+    api.uploadFile.mockResolvedValue({
+      file_id: "f1", name: "deed.pdf", kind: "digital", pages: 1, size: 100,
+    });
+    api.estimate.mockResolvedValue([]);
+
+    renderQueue();
+    const english = await screen.findByRole("radio", { name: "English" });
+    const spanish = screen.getByRole("radio", { name: "Español" });
+    expect(english).toBeChecked();
+    expect(spanish).not.toBeChecked();
+
+    fireEvent.click(spanish);
+    await waitFor(() => expect(spanish).toBeChecked());
+
+    fireEvent.click(screen.getByRole("button", { name: /estimate cost/i }));
+    await waitFor(() => expect(api.estimate).toHaveBeenCalledWith(["f1"], { f1: "es" }));
+  });
+});

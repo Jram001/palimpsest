@@ -36,6 +36,10 @@ class UploadResponse(BaseModel):
 
 class EstimateRequest(BaseModel):
     file_ids: list[str]
+    # file_id -> "en" | "es": which language each file is translated INTO.
+    # A file with no entry is translated into English, the original
+    # behaviour. See translate.direction.
+    targets: dict[str, str] = {}
 
 
 class DocumentEstimateResponse(BaseModel):
@@ -55,6 +59,7 @@ class CreateJobRequest(BaseModel):
     file_ids: list[str]
     backend: str | None = None
     dual: bool = True
+    targets: dict[str, str] = {}
 
 
 class CreateJobResponse(BaseModel):
@@ -66,6 +71,7 @@ class JobFileResponse(BaseModel):
     name: str
     kind: str
     status: str
+    target: str
     report: dict | None
     error: str | None
 

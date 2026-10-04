@@ -35,12 +35,19 @@ log = logging.getLogger(__name__)
 # it did not actually translate. Used only to classify a same-as-input
 # result as suspicious ("identical") vs. legitimately unchanged (a bare
 # company name, a code, a number), never to silently rewrite anything.
-_SOURCE_LANGUAGE_MARKERS = re.compile(
-    r"\b(que|los|las|del|por|para|con|una|este|esta|son|ser|como|más|"
-    r"sobre|entre|desde|hasta|cuando|donde|quien|cual|pero|porque|"
-    r"señor|señores|sociedad|contrato|presente|mismo|dicha|dicho)\b",
-    re.IGNORECASE,
-)
+_SOURCE_LANGUAGE_MARKERS = {
+    "es": re.compile(
+        r"\b(que|los|las|del|por|para|con|una|este|esta|son|ser|como|más|"
+        r"sobre|entre|desde|hasta|cuando|donde|quien|cual|pero|porque|"
+        r"señor|señores|sociedad|contrato|presente|mismo|dicha|dicho)\b",
+        re.IGNORECASE,
+    ),
+    "en": re.compile(
+        r"\b(the|and|of|to|that|with|for|this|shall|which|from|by|are|is|"
+        r"will|have|has|been|not|or|agreement|company|hereby|party|parties)\b",
+        re.IGNORECASE,
+    ),
+}
 
 
 class Translator:
@@ -86,7 +93,8 @@ class Translator:
             # prose in the source language; a line like "GRUPO MERIDIAN,
             # S.A.S." is legitimately unchanged and must not be flagged
             # forever as a translation failure.
-            return "identical" if _SOURCE_LANGUAGE_MARKERS.search(a) else "ok"
+            markers = _SOURCE_LANGUAGE_MARKERS.get(self.source)
+            return "identical" if markers is not None and markers.search(a) else "ok"
         return "ok"
 
     def _call_backend(self, text: str) -> tuple[str | None, str]:

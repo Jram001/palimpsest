@@ -130,7 +130,14 @@ describe("success path", () => {
     const [url, options] = global.fetch.mock.calls[0];
     expect(url).toContain("/api/estimate");
     expect(options.method).toBe("POST");
-    expect(JSON.parse(options.body)).toEqual({ file_ids: ["a", "b"] });
+    expect(JSON.parse(options.body)).toEqual({ file_ids: ["a", "b"], targets: {} });
+  });
+
+  it("estimate() sends each file's target language", async () => {
+    mockFetchOnce(jsonResponse([]));
+    await estimate(["a", "b"], { b: "es" });
+    const [, options] = global.fetch.mock.calls[0];
+    expect(JSON.parse(options.body)).toEqual({ file_ids: ["a", "b"], targets: { b: "es" } });
   });
 
   it("cancelJob POSTs to /api/jobs/{id}/cancel with no body", async () => {

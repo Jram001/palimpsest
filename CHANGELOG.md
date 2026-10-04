@@ -5,6 +5,22 @@ All notable changes to this project are documented here. Format follows
 does not yet promise strict [Semantic Versioning](https://semver.org/)
 compatibility guarantees (pre-1.0).
 
+## [Unreleased]
+
+### Added
+
+- **Per-file target language.** Each file in the web UI's Queue step has an
+  English / Español switch choosing which language it is translated into,
+  so one job can mix Spanish -> English and English -> Spanish files.
+  `POST /api/estimate` and `POST /api/jobs` take a `targets` map
+  (file id -> `"en"` | `"es"`, default `"en"`), and each job file reports
+  its `target`. Downloads are now named `<source name>.<lang>.<ext>`.
+  See `docs/design/limitations.md` for what English -> Spanish does not
+  get (glossaries, date fixups, ordinals).
+- A setup guide page, a home-page help link, and a Back button on the
+  Sample screen.
+
+
 ## [0.2.2] — 2026-08-09
 
 ### Fixed
