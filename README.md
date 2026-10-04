@@ -99,8 +99,7 @@ Local-first, single-user, no accounts: everything runs on your own machine
 and binds to loopback by default (`--host` requires an explicit `--i-know`
 to bind wider). API keys are read from the environment exactly like the
 CLI, and never stored in a job record or echoed back in a response — you
-can also type one into the page itself instead of a shell (`PUT
-/api/keys`, applied immediately, saved to `.env`). See
+can also type one into the page itself instead of a shell (`PUT /api/keys`, applied immediately, saved to `.env`). See
 [`web/prototype/README.md`](https://github.com/ianperaltahirujo/palimpsest/blob/main/web/prototype/README.md) for the frontend
 itself, including `--dev` mode for working on the UI against a live API
 without rebuilding on every change, its "Standalone" mode for publishing

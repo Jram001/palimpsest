@@ -26,6 +26,9 @@ export default function Sample() {
 
   return (
     <div style={{ padding: "32px 40px 20px", maxWidth: 1200, margin: "0 auto" }}>
+      <Button variant="default" size="xs" mb={18} onClick={() => goto("overview")}>
+        {t("sample.back")}
+      </Button>
       {/* Dropping directly on the hero page counts too, not just the slim
           dropzone bar beneath it -- matches the copy below. */}
       <div

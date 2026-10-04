@@ -616,6 +616,167 @@ html[data-mantine-color-scheme="dark"] .pp-regmark .pp-u {
   cursor: pointer;
 }
 
+/* ---- Overview help card + Setup page ---------------------------------
+   Same flat, ruled-paper vocabulary as the rest of the app: raised leaf,
+   1px rule, register-blue as the only accent. */
+.pp-help-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 22px 2px 0;
+  border-top: 1px solid var(--pp-rule-soft);
+  text-align: left;
+  cursor: pointer;
+}
+.pp-help-card:focus-visible {
+  outline: 2px solid var(--pp-register);
+  outline-offset: 4px;
+}
+.pp-help-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--pp-register-wash);
+  color: var(--pp-register-ink);
+}
+.pp-help-cta {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pp-register-ink);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s;
+}
+.pp-help-card:hover .pp-help-cta {
+  text-decoration-color: currentColor;
+}
+.pp-help-cta svg {
+  transition: transform 0.15s;
+}
+.pp-help-card:hover .pp-help-cta svg {
+  transform: translateX(3px);
+}
+@media (max-width: 520px) {
+  .pp-help-card {
+    flex-wrap: wrap;
+  }
+  .pp-help-cta {
+    margin-left: 48px;
+  }
+}
+
+.pp-setup-steps {
+  margin-top: 36px;
+  display: flex;
+  flex-direction: column;
+}
+.pp-setup-step {
+  display: flex;
+  gap: 18px;
+  padding-bottom: 28px;
+  position: relative;
+}
+.pp-setup-step:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: 36px;
+  bottom: 4px;
+  width: 1px;
+  background: var(--pp-rule);
+}
+.pp-setup-num {
+  flex: 0 0 auto;
+  width: 31px;
+  height: 31px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--pp-leaf);
+  border: 1.5px solid var(--pp-register);
+  color: var(--pp-register-ink);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 13px;
+  font-weight: 700;
+}
+.pp-cmd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 10px 10px 14px;
+  background: var(--pp-leaf-sunk);
+  border: 1px solid var(--pp-rule-soft);
+  border-radius: 3px;
+}
+.pp-cmd code {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 12.5px;
+  color: var(--pp-ink);
+  overflow-x: auto;
+  white-space: nowrap;
+  background: none;
+  padding: 0;
+}
+.pp-cmd-copy {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  background: var(--pp-leaf-raised);
+  border: 1px solid var(--pp-rule);
+  border-radius: 3px;
+  font-size: 11px;
+  color: var(--pp-ink-soft);
+  cursor: pointer;
+}
+.pp-cmd-copy:hover {
+  border-color: var(--pp-register);
+  color: var(--pp-register-ink);
+}
+.pp-check {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+  padding: 16px 18px;
+  background: var(--pp-leaf-raised);
+  border: 1px solid var(--pp-rule);
+  border-left: 3px solid var(--pp-rule);
+  border-radius: 3px;
+}
+.pp-check[data-state="ok"] {
+  border-left-color: var(--pp-ok);
+  background: var(--pp-ok-wash);
+}
+.pp-check[data-state="fail"] {
+  border-left-color: var(--pp-flag);
+  background: var(--pp-flag-wash);
+}
+.pp-fix {
+  padding: 14px 16px;
+  background: var(--pp-leaf-raised);
+  border: 1px solid var(--pp-rule-soft);
+  border-radius: 3px;
+}
+.pp-fix + .pp-cmd {
+  margin-top: 8px;
+}
+.pp-fix code {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 12px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.001ms !important;
