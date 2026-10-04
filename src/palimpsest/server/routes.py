@@ -40,6 +40,12 @@ from palimpsest.server.uploads import UploadRejected, validate_and_save
 from palimpsest.text.protect import EntityGuard
 from palimpsest.translate.backend import TranslationContext
 from palimpsest.translate.cache import Cache, compute_namespace
+from palimpsest.translate.direction import (
+    DEFAULT_TARGET,
+    SUPPORTED_TARGETS,
+    config_for_target,
+    resources_for,
+)
 from palimpsest.translate.estimate import estimate_document
 
 router = APIRouter(prefix="/api")
@@ -191,13 +197,15 @@ async def upload(request: Request, file: UploadFile) -> UploadResponse:
     )
 
 
-def _cache_for(rel: str, state, backend) -> Cache:
+def _cache_for(rel: str, state, backend, target: str = DEFAULT_TARGET) -> Cache:
     key = core_paths.cache_key(core_paths.norm_rel(rel))
     cache_path = state.config.paths.cache_dir / f"{key}.json"
+    lang = config_for_target(state.config, target).language
+    glossary, _ = resources_for(target, state.glossary, state.post_rules)
     namespace = compute_namespace(
         backend.name, getattr(backend, "model", None),
-        state.config.language.source, state.config.language.target,
-        glossary_terms=state.glossary.terms, entities=state.entities,
+        lang.source, lang.target,
+        glossary_terms=glossary.terms, entities=state.entities,
     )
     return Cache(cache_path, namespace=namespace)
 
@@ -224,15 +232,24 @@ def _backend_for_visitor(state, request: Request, config=None):
         raise HTTPException(status_code=503, detail=str(e)) from e
 
 
+def _validate_targets(targets: dict[str, str]) -> None:
+    for file_id, target in targets.items():
+        if target not in SUPPORTED_TARGETS:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"unsupported target language {target!r} for {file_id!r}; "
+                    f"expected one of {list(SUPPORTED_TARGETS)}"
+                ),
+            )
+
+
 @router.post("/estimate", response_model=list[DocumentEstimateResponse])
 def estimate(request: Request, body: EstimateRequest) -> list[DocumentEstimateResponse]:
     state = _state(request)
     visitor_id = _visitor_id(request)
     backend = _backend_for_visitor(state, request)
-    ctx = TranslationContext(
-        source_lang=state.config.language.source, target_lang=state.config.language.target,
-        entities=state.entities, glossary=state.glossary.terms,
-    )
+    _validate_targets(body.targets)
     results = []
     for file_id in body.file_ids:
         uploaded = state.get_upload(file_id, visitor_id)
@@ -264,7 +281,14 @@ def estimate(request: Request, body: EstimateRequest) -> list[DocumentEstimateRe
             doc.close()
             kind = uploaded.kind
 
-        cache = _cache_for(uploaded.name, state, backend)
+        target = body.targets.get(file_id, DEFAULT_TARGET)
+        lang = config_for_target(state.config, target).language
+        glossary, _ = resources_for(target, state.glossary, state.post_rules)
+        ctx = TranslationContext(
+            source_lang=lang.source, target_lang=lang.target,
+            entities=state.entities, glossary=glossary.terms,
+        )
+        cache = _cache_for(uploaded.name, state, backend, target)
         est = estimate_document(
             uploaded.name, texts, backend, ctx, cache, kind=kind, pages=pages
         )
@@ -294,6 +318,7 @@ def create_job(request: Request, body: CreateJobRequest) -> CreateJobResponse:
         uploaded.append(u)
     if not uploaded:
         raise HTTPException(status_code=400, detail="file_ids is empty")
+    _validate_targets(body.targets)
 
     max_concurrent = state.config.limits.max_concurrent_jobs_per_visitor
     active = state.jobs.active_jobs_for(visitor_id)
@@ -324,7 +349,8 @@ def create_job(request: Request, body: CreateJobRequest) -> CreateJobResponse:
     backend = _backend_for_visitor(state, request, config)
 
     job = state.jobs.create(
-        uploaded, backend_name=backend.name, dual=body.dual, visitor_id=visitor_id
+        uploaded, backend_name=backend.name, dual=body.dual, visitor_id=visitor_id,
+        targets=body.targets,
     )
     uploaded_by_id = {u.file_id: u for u in uploaded}
     out_dir = state.jobs.jobs_dir / job.id
@@ -443,9 +469,13 @@ def download(
 
     if path is None or not path.is_file():
         raise HTTPException(status_code=404, detail=f"{artifact} not available for this file yet")
+    # The stored file is named by its random id; a download is named for
+    # the source document and the language it was translated into.
+    suffix = ".dual.pdf" if artifact == "dual" else f".{jf.target}{path.suffix}"
+    download_name = f"{Path(jf.name).stem}{suffix}"
     return StreamingResponse(
         io.BytesIO(path.read_bytes()), media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{path.name}"'},
+        headers={"Content-Disposition": f'attachment; filename="{download_name}"'},
     )
 
 

@@ -69,3 +69,26 @@ The `spa` traineddata used is the compact `fast` variant (a few MB). The
 recognition on degraded scans; it is not installed by default. Point
 `[ocr].tessdata_prefix` at your own `best`-variant install if OCR quality
 on poor scans matters more than setup size to you.
+
+## English -> Spanish is a thinner path than Spanish -> English
+
+The web UI lets each queued file choose English or Spanish as its target
+(`translate.direction`). The backends, cache namespace and prompts are
+direction-agnostic, so the translation itself works either way -- but the
+tooling that was built around the original Spanish -> English corpus does
+not run backwards, and is dropped (not inverted) for an English source:
+
+- **Glossaries.** The bundled term lists are Spanish -> English. Inverting
+  one is lossy (several Spanish terms share one English rendering), so an
+  English -> Spanish file is translated with no glossary at all.
+- **Post-rules.** The date fixups rewrite English month names and repair a
+  "Santo Domingo" mistranslation; neither applies to Spanish output.
+- **Legal ordinals.** `text.ordinals` peels Spanish ordinals ("DECIMO
+  CUARTO") and re-attaches an English form. For an English source only the
+  language-neutral list marker (`a)`, `2.`) is peeled.
+- **OCR.** A scanned English document is OCR'd with Tesseract's `eng`
+  pack (a Spanish source keeps the configured `[ocr].language`).
+- **Report wording.** The Results screen's labels still read "Kept
+  Spanish" for any untranslated paragraph, whichever the source language.
+
+Protected entities work identically in both directions.

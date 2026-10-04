@@ -107,16 +107,18 @@ export async function uploadFile(file, onProgress) {
   return requestJson("/api/uploads", { method: "POST", body: form });
 }
 
-export function estimate(fileIds) {
+// `targets` maps file_id -> "en" | "es", the language each file is
+// translated INTO. A file with no entry is translated into English.
+export function estimate(fileIds, targets = {}) {
   return requestJson("/api/estimate", {
-    method: "POST", headers: JSON_HEADERS, body: JSON.stringify({ file_ids: fileIds }),
+    method: "POST", headers: JSON_HEADERS, body: JSON.stringify({ file_ids: fileIds, targets }),
   });
 }
 
-export function createJob(fileIds, { backend, dual = true } = {}) {
+export function createJob(fileIds, { backend, dual = true, targets = {} } = {}) {
   return requestJson("/api/jobs", {
     method: "POST", headers: JSON_HEADERS,
-    body: JSON.stringify({ file_ids: fileIds, backend: backend || null, dual }),
+    body: JSON.stringify({ file_ids: fileIds, backend: backend || null, dual, targets }),
   });
 }
 

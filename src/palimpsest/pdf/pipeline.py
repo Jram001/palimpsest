@@ -48,16 +48,20 @@ log = logging.getLogger(__name__)
 _MARKER_RE = re.compile(r"^\s*((?:[a-zA-Z]\)|\(?[ivxIVX]{1,5}\)|\d{1,2}[.)]|[•●○◦▪§·]))\s+")
 
 
-def split_prefix(text: str) -> tuple[str, str]:
+def split_prefix(text: str, source: str = "es") -> tuple[str, str]:
     """Peel off a leading list marker and/or legal ordinal. Returns
-    (prefix, remainder); the prefix is already in its final English form."""
+    (prefix, remainder); the prefix is already in its final English form.
+
+    Legal ordinals are a Spanish-source feature (`text.ordinals` maps
+    Spanish words to English ones), so for any other source language only
+    the language-neutral list marker is peeled."""
     prefix = ""
     rest = text
     m = _MARKER_RE.match(rest)
     if m:
         prefix += m.group(1) + " "
         rest = rest[m.end():]
-    en_ord, tail = ordinals.match(rest, strip_accents)
+    en_ord, tail = ordinals.match(rest, strip_accents) if source == "es" else (None, rest)
     if en_ord:
         prefix += en_ord
         rest = tail
@@ -71,7 +75,7 @@ def split_prefix(text: str) -> tuple[str, str]:
 
 def translate_with_prefix(text: str, tr: Translator) -> tuple[str | None, str]:
     """Translate `text`, protecting any leading marker/ordinal."""
-    prefix, rest = split_prefix(text)
+    prefix, rest = split_prefix(text, tr.source)
     if not prefix:
         return tr.translate(text)
     if not rest.strip():
