@@ -3,10 +3,12 @@ import * as api from "./api.js";
 import { MOCK } from "./config.js";
 import { CACHEABLE_BACKENDS, getCachedKey, HEALTH_KEY, KEY_FIELD } from "./keys.js";
 
-// The six product states, in order. "compare" is a sub-view of "results"
+// The six product states, in order, plus "setup" -- a static instructions
+// page reachable from Overview's help box and the unreachable-server
+// banners, outside the translate flow itself. "compare" is a sub-view of "results"
 // (reached via an issue's "View on page ->"), not a state of its own --
 // mirrors the pass-2 prototype's compareView overlay.
-export const SCREENS = ["overview", "sample", "queue", "estimate", "running", "results"];
+export const SCREENS = ["overview", "sample", "queue", "estimate", "running", "results", "setup"];
 
 const AppStateContext = createContext(null);
 

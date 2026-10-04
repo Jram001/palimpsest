@@ -5,13 +5,15 @@ import { notifications } from "@mantine/notifications";
 import { IconAlertTriangle, IconLayoutSidebarLeftExpand } from "@tabler/icons-react";
 import { AppStateProvider, useAppState } from "./state.jsx";
 import { T, useT } from "./i18n.jsx";
-import { MOCK, getApiBase } from "./config.js";
+import { MOCK } from "./config.js";
+import { serveCommand } from "./serveCommand.js";
 import Logo from "./components/Logo.jsx";
 import ThemeToggle from "./components/ThemeToggle.jsx";
 import LangToggle from "./components/LangToggle.jsx";
 import Rail from "./components/Rail.jsx";
 import Overview from "./components/Overview.jsx";
 import Sample from "./components/Sample.jsx";
+import Setup from "./components/Setup.jsx";
 import Queue from "./components/Queue.jsx";
 import Estimate from "./components/Estimate.jsx";
 import Running from "./components/Running.jsx";
@@ -21,23 +23,12 @@ import DevSwitcher from "./components/DevSwitcher.jsx";
 const SCREEN_COMPONENTS = {
   overview: Overview,
   sample: Sample,
+  setup: Setup,
   queue: Queue,
   estimate: Estimate,
   running: Running,
   results: Results,
 };
-
-// The exact command to fix "unreachable" -- only names --allow-origin
-// when this page's own origin genuinely differs from the API's (the
-// standalone/GitHub Pages build; see config.js's VITE_STANDALONE). A
-// same-origin production build (palimpsest serve) or the npm run dev
-// proxy both resolve getApiBase() to "" and need no flag at all.
-export function serveCommand() {
-  const apiBase = getApiBase();
-  const pageOrigin = window.location.origin;
-  const apiOrigin = apiBase ? new URL(apiBase, pageOrigin).origin : pageOrigin;
-  return apiOrigin === pageOrigin ? "palimpsest serve" : `palimpsest serve --allow-origin ${pageOrigin}`;
-}
 
 function Shell() {
   const { screen, goto, apiError, setApiError, healthError, dropzoneTouched } = useAppState();
@@ -45,7 +36,7 @@ function Shell() {
   const [mobileOpen, { toggle: toggleMobile }] = useDisclosure(false);
   const [desktopCollapsed, setDesktopCollapsed] = useLocalStorage({ key: "pp-rail-collapsed", defaultValue: false });
   const ScreenComponent = SCREEN_COMPONENTS[screen] ?? Overview;
-  const showSuggested = screen !== "overview" && screen !== "sample";
+  const showSuggested = screen !== "overview" && screen !== "sample" && screen !== "setup";
 
   // Fires once -- the first time a visitor who has touched the dropzone
   // turns out to have no reachable server -- rather than on every health
@@ -107,7 +98,10 @@ function Shell() {
             m={20}
             title={t("app.backendUnreachable")}
           >
-            {apiError.message}
+            {apiError.message}{" "}
+            <Anchor component="button" type="button" size="sm" onClick={() => goto("setup")}>
+              {t("app.setupLink")}
+            </Anchor>
           </Alert>
         )}
         {/* Only when apiError isn't already showing -- both are driven by
@@ -129,7 +123,10 @@ function Shell() {
             m={20}
             title={t("app.backendUnreachable")}
           >
-            <T k="app.serverUnreachableBody" params={{ cmd: serveCommand() }} />
+            <T k="app.serverUnreachableBody" params={{ cmd: serveCommand() }} />{" "}
+            <Anchor component="button" type="button" size="sm" onClick={() => goto("setup")}>
+              {t("app.setupLink")}
+            </Anchor>
           </Alert>
         )}
         <ScreenComponent />

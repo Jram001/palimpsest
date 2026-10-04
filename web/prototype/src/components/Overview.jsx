@@ -1,4 +1,5 @@
-import { Button, Text, Title } from "@mantine/core";
+import { Button, Text, Title, UnstyledButton } from "@mantine/core";
+import { IconArrowRight, IconLifebuoy } from "@tabler/icons-react";
 import { Dropzone } from "@mantine/dropzone";
 import { notifications } from "@mantine/notifications";
 import { useAppState } from "../state.jsx";
@@ -88,6 +89,29 @@ export default function Overview() {
           <Button variant="default">{t("common.chooseFiles")}</Button>
         </div>
       </Dropzone>
+
+      <UnstyledButton
+        onClick={() => goto("setup")}
+        className="pp-help-card"
+        aria-label={t("overview.helpAria")}
+        mt={36}
+      >
+        <span className="pp-help-icon">
+          <IconLifebuoy size={18} stroke={1.7} />
+        </span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <Text fw={700} size="sm">
+            {t("overview.helpTitle")}
+          </Text>
+          <Text size="xs" c="dimmed" mt={3} style={{ lineHeight: 1.5 }}>
+            {t("overview.helpBody")}
+          </Text>
+        </span>
+        <span className="pp-help-cta">
+          {t("overview.helpCta")}
+          <IconArrowRight size={14} />
+        </span>
+      </UnstyledButton>
     </div>
   );
 }

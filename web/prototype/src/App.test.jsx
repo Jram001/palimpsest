@@ -13,7 +13,8 @@ vi.mock("./api.js", () => ({
 import * as api from "./api.js";
 import { theme } from "./theme.js";
 import { I18nProvider } from "./i18n.jsx";
-import App, { serveCommand } from "./App.jsx";
+import App from "./App.jsx";
+import { serveCommand } from "./serveCommand.js";
 
 beforeEach(() => {
   vi.clearAllMocks();
