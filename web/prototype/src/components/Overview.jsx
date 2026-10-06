@@ -26,7 +26,7 @@ export default function Overview() {
     }
   }
   return (
-    <div style={{ maxWidth: 640, padding: "56px 40px 80px", margin: "0 auto" }}>
+    <div className="pp-page-pad" style={{ maxWidth: 640 }}>
       <Text size="xs" tt="uppercase" c="dimmed" ff="monospace" mb={8} style={{ letterSpacing: ".09em" }}>
         {t("overview.eyebrow")}
       </Text>
@@ -99,7 +99,7 @@ export default function Overview() {
         <span className="pp-help-icon">
           <IconLifebuoy size={18} stroke={1.7} />
         </span>
-        <span style={{ flex: 1, minWidth: 0 }}>
+        <span className="pp-help-text">
           <Text fw={700} size="sm">
             {t("overview.helpTitle")}
           </Text>

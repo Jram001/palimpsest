@@ -20,6 +20,13 @@ compatibility guarantees (pre-1.0).
 - A setup guide page, a home-page help link, and a Back button on the
   Sample screen.
 
+### Fixed
+
+- Phone layout: the home page's "Stuck?" help row collapsed into a one-word-wide
+  column and now stacks cleanly. Overview, Sample and Setup use narrower gutters
+  on a phone, the Queue's English / Español switch sits on its own line under
+  each file, and the Setup page's install commands wrap instead of clipping.
+
 
 ## [0.2.2] — 2026-08-09
 

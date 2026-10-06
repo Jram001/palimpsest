@@ -94,7 +94,7 @@ export default function Queue() {
             <div style={{ width: 34, height: 34, border: "1px solid var(--pp-rule)", borderRadius: 3, display: "grid", placeItems: "center", fontFamily: "var(--mantine-font-family-monospace)", fontSize: 9, color: "var(--pp-ink-soft)", flex: "0 0 auto" }}>
               {extLabel(f.name)}
             </div>
-            <div style={{ flex: "1 1 180px", minWidth: 0 }}>
+            <div style={{ flex: "1 1 120px", minWidth: 0 }}>
               <Text fw={600} size="sm" truncate>
                 {f.name}
               </Text>
@@ -112,7 +112,7 @@ export default function Queue() {
                 )}
               </Group>
             </div>
-            <div style={{ flex: "0 0 auto" }}>
+            <div className="pp-target">
               <Text size="10px" tt="uppercase" c="dimmed" ff="monospace" mb={4} style={{ letterSpacing: ".08em" }}>
                 {t("queue.translateTo")}
               </Text>
@@ -125,6 +125,7 @@ export default function Queue() {
               />
             </div>
             <Button
+              className="pp-queue-remove"
               variant="subtle" color="gray" size="xs" px={6}
               aria-label={t("queue.removeAria", { name: f.name })}
               onClick={() => (MOCK ? null : removeUpload(f.id))}

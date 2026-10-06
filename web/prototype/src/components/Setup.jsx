@@ -83,7 +83,7 @@ export default function Setup() {
   const failed = checked && !!healthError;
 
   return (
-    <div style={{ maxWidth: 680, padding: "40px 40px 80px", margin: "0 auto" }}>
+    <div className="pp-page-pad" style={{ maxWidth: 680 }}>
       <Button variant="default" size="xs" mb={22} onClick={() => goto("overview")}>
         {t("setup.back")}
       </Button>

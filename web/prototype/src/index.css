@@ -633,6 +633,10 @@ html[data-mantine-color-scheme="dark"] .pp-regmark .pp-u {
   outline: 2px solid var(--pp-register);
   outline-offset: 4px;
 }
+.pp-help-text {
+  flex: 1 1 220px;
+  min-width: 0;
+}
 .pp-help-icon {
   flex: 0 0 auto;
   display: grid;
@@ -666,11 +670,69 @@ html[data-mantine-color-scheme="dark"] .pp-regmark .pp-u {
   transform: translateX(3px);
 }
 @media (max-width: 520px) {
+  /* Icon + text share the first line, the link drops under the text --
+     without an explicit basis on .pp-help-text the text column shrinks to
+     a sliver instead of wrapping the link onto its own line. */
   .pp-help-card {
     flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .pp-help-text {
+    flex-basis: calc(100% - 48px);
   }
   .pp-help-cta {
     margin-left: 48px;
+  }
+}
+
+/* Page gutters for the screens that aren't .pp-state-pad (Overview, Sample,
+   Setup): 40px each side on a desktop, 18px on a phone. */
+.pp-page-pad {
+  margin: 0 auto;
+  padding: 56px 40px 80px;
+}
+.pp-page-pad--sample {
+  padding-top: 32px;
+  padding-bottom: 20px;
+}
+@media (max-width: 600px) {
+  .pp-page-pad {
+    padding: 28px 18px 64px;
+  }
+  .pp-page-pad--sample {
+    padding-top: 20px;
+    padding-bottom: 16px;
+  }
+}
+
+.pp-target {
+  flex: 0 0 auto;
+}
+@media (max-width: 600px) {
+  /* Queue row: icon, name and remove button share line one; the language
+     switch gets its own full-width line beneath. */
+  .pp-queue-remove {
+    order: 1;
+  }
+  .pp-target {
+    order: 2;
+    flex: 1 1 100%;
+  }
+  .pp-target .mantine-SegmentedControl-root {
+    width: 100%;
+  }
+  .pp-check {
+    flex-wrap: wrap;
+  }
+  /* Show a whole command on a phone instead of a sideways-scrolling
+     fragment of it; the Copy button drops under it when it won't fit. */
+  .pp-cmd {
+    flex-wrap: wrap;
+  }
+  div.pp-cmd code {
+    flex: 1 1 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -719,6 +781,7 @@ html[data-mantine-color-scheme="dark"] .pp-regmark .pp-u {
   border-radius: 3px;
 }
 .pp-cmd code {
+  min-width: 0;
   font-family: var(--mantine-font-family-monospace);
   font-size: 12.5px;
   color: var(--pp-ink);
